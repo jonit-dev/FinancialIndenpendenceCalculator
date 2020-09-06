@@ -2,14 +2,16 @@ import { Person } from '../classes/Person';
 
 
 export enum Provinces {
-  MB = "MB"
+  MB = "MB",
+  QC = "QC",
+  BC = "BC"
 }
 
 export interface IProvinceChildCareCost {
   [province: string]: {
-    infant: 651,
-    toddler: 451,
-    preSchool: 451
+    infant: number,
+    toddler: number,
+    preSchool: number
   }
 }
 
@@ -53,7 +55,8 @@ export interface IResult {
 
 export interface IProvinceResult {
   province: Provinces,
-  timeTo1M: number,
-  timeToFinancialIndependence: number,
-  results: IResult[]
+  timeTo1M: number | undefined,
+  timeToFinancialIndependence: number | undefined,
+  results: IResult[],
+  finalCapital: number
 }

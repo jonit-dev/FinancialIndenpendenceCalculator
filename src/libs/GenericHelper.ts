@@ -1,5 +1,3 @@
-import { Person } from '../classes/Person';
-import { RolesSalary } from '../constants/salaries.const';
 import { IProvinceChildCareCost } from '../types/index.types';
 
 
@@ -23,31 +21,7 @@ export class GenericHelper {
     return 0
   }
 
-
-  public static calculateExpectedSalary(family: Person[], year: number, province: string) {
-
-    let output = []
-
-
-    for (const person of family) {
-
-      output.push({
-        role: person.role,
-        grossSalaryYr: RolesSalary[province][person.role],
-        netSalaryMo: RolesSalary[province][person.role]
-      })
-
-
-    }
-
-    return output
-
-
-
-
-  }
-
-  public static formatCurrency(currency: string, number) {
+  public static formatCurrency(currency: string, number: number) {
 
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(number)
 

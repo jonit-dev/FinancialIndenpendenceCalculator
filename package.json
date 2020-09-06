@@ -10,5 +10,8 @@
   },
   "scripts": {
     "dev": "nodemon src/index.ts"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.161"
   }
 }

@@ -1,16 +1,36 @@
 import { Person } from '../classes/Person';
-import { RolesSalary } from '../constants/salaries.const';
+import { householdExpenses, RolesSalary } from '../constants/provinces.const';
 import { IProvinceChildCareCost, IProvinceResult, IResult, Provinces } from '../types/index.types';
 import { GenericHelper } from './GenericHelper';
 import { InterestHelper } from './InterestHelper';
 
 
-
 export class SimulationHelper {
 
-  public static calculateResults(family: Person[], startingCapital: number, maxYears: number, province: Provinces, provinceChildCareCosts: IProvinceChildCareCost, baseExpenses: number, interestRate: number, inflationRate: number, childBenefitValue: number, printResults: "FULL" | "SUMMARY" | "NO"): IProvinceResult {
+  public static printComparisonResults(simulationLength: number, simulationResults: IProvinceResult[]) {
+
+    console.log('📊 Simulation Comparison Results 📊');
+
+    console.log(`> Total simulation length: ${simulationLength} yrs`);
+
+    for (const result of simulationResults) {
+      console.log(`📍 Province: ${result.province}`);
+      console.log(`> Time to 1M CAD: ${result.timeTo1M} yrs`);
+      console.log(`> Time to financial independence: ${result.timeToFinancialIndependence} yrs`);
+      console.log(`> Final Capital: ${GenericHelper.formatCurrency('CAD', result.finalCapital)}`);
+      console.log(`\n`);
+    }
+
+
+  }
+
+
+  public static calculateResults(family: Person[], startingCapital: number, maxYears: number, province: Provinces, provinceChildCareCosts: IProvinceChildCareCost, interestRate: number, inflationRate: number, childBenefitValue: number, printResults: "FULL" | "SUMMARY" | "NO"): IProvinceResult {
+
 
     let results: IResult[] = []
+
+    const baseExpenses = householdExpenses[province].reduce((total, el) => total + el.value, 0)
 
     const realInterestRateYr = interestRate - inflationRate
     const realInterestRateMo = realInterestRateYr / 12
@@ -46,17 +66,26 @@ export class SimulationHelper {
 
       const passiveIncomeMo = (capital * 0.05) / 12
 
-      const agesString = family.map((person) => `${person.name}'s Age: ${person.age}`).join('\n')
+      // increase 1 year in all family members
+      family.forEach((person) => person.age++)
 
-      const salariesString = family.map((person) => {
+      // check if we should upgrade family member roles
 
+      family.forEach((person) => {
 
-        const grossSalary = RolesSalary[province][person.role].grossYr;
-        const netSalaryMo = RolesSalary[province][person.role].netMo;
+        if (person.nextRoles.length) {
 
-        return `> ${person.name}'s Salary: ${person.role} => ${GenericHelper.formatCurrency('CAD', grossSalary)} gross(yr) / ${GenericHelper.formatCurrency('CAD', netSalaryMo)} net(mo)`
+          const nextRole = person.nextRoles[0]
 
-      }).join('\n')
+          if (year >= nextRole.year) { //means we should update its roles
+
+            person.nextRoles.shift() //remove first next role item
+
+            // remove next role and update family member
+            person.role = nextRole.role
+          }
+        }
+      })
 
 
 
@@ -71,66 +100,52 @@ export class SimulationHelper {
         passiveIncomeMo
       })
 
+      if (printResults !== "NO") console.log(`🖩 *** Year: ${year} *** 🖩 `);
+
       // check if one of our goals were met
       if (capital >= 1000000 && !timeTo1M) {
         timeTo1M = year
+        if (printResults !== "NO") console.log(`> Goal: 💰 1M of capital reached! 💰`);
       }
       if ((passiveIncomeMo > totalExpenses) && !timeToFinancialIndependence) {
         timeToFinancialIndependence = year
+        if (printResults !== "NO") console.log(`> Goal: 🤑 Financial Independence Reached! FU Money!! 🤑`);
       }
 
-      // increase 1 year in all family members
+      const agesString = family.map((person) => `> ${person.name}'s Age: ${person.age}`).join('\n')
 
-      family.forEach((person) => person.age++)
+      const salariesString = family.map((person) => {
 
-      // check if we should upgrade family member roles
+        const grossSalary = RolesSalary[province][person.role].grossYr;
+        const netSalaryMo = RolesSalary[province][person.role].netMo;
 
-      family = family.map((person) => {
+        return `> ${person.name}'s Salary: ${person.role} => ${GenericHelper.formatCurrency('CAD', grossSalary)} gross(yr) / ${GenericHelper.formatCurrency('CAD', netSalaryMo)} net(mo)`
 
-        if (person.nextRoles.length) {
-
-          const nextRole = person.nextRoles[0]
-
-          if (year > nextRole.year) { //means we should update its roles
-
-            person.nextRoles.shift() //remove first next role item
-
-            // remove next role and update family member
-            return {
-              ...person,
-              role: nextRole.nextRole
-            }
-          }
-          return person
-        }
-
-
-        return person
-      })
+      }).join('\n')
 
 
       switch (printResults) {
 
         case "FULL":
-          console.log(`🖩 *** Year: ${year} *** 🖩 `);
           console.log(agesString);
-          console.log(`> Province: ${province}`);
+          console.log(`>📍 Province: ${province}`);
           console.log(`> Real Interest Rate/Mo: ${realInterestRateMo.toFixed(2)}%`);
           console.log(salariesString);
           console.log(`> Total Revenue: ${GenericHelper.formatCurrency('CAD', totalRevenue)}`);
           console.log(`> Total Expenses: ${GenericHelper.formatCurrency('CAD', totalExpenses)}`);
           console.log(`> Total Extra income: ${GenericHelper.formatCurrency('CAD', extraIncome)}`);
           console.log(`> Monthly Investment: $${GenericHelper.formatCurrency('CAD', monthlyInvestment)}`);
-          console.log(`> Capital after 12 months: ${GenericHelper.formatCurrency('CAD', capital)}`);
-          console.log(`> Estimated Passive Income (5% per year): ${GenericHelper.formatCurrency('CAD', passiveIncomeMo)}/mo`);
+          console.log(`> Total Capital: ${GenericHelper.formatCurrency('CAD', capital)}`);
+          console.log(`> Estimated Passive Income per Month (5%/yr rate): ${GenericHelper.formatCurrency('CAD', passiveIncomeMo)}`);
           console.log('\n');
           break;
 
         case "SUMMARY":
-          console.log(`🖩 *** Year: ${year} *** 🖩 `);
+          console.log(`📍 Province: ${province}`);
           console.log(agesString);
           console.log(salariesString);
-          console.log(`> Capital after 12 months: ${GenericHelper.formatCurrency('CAD', capital)}`);
+          console.log(`> Total Capital: ${GenericHelper.formatCurrency('CAD', capital)}`);
+          console.log(`> Estimated Passive Income per Month (5%/yr rate): ${GenericHelper.formatCurrency('CAD', passiveIncomeMo)}`);
           console.log('\n');
           break;
         case "NO":
@@ -142,7 +157,8 @@ export class SimulationHelper {
       province,
       results,
       timeTo1M,
-      timeToFinancialIndependence
+      timeToFinancialIndependence,
+      finalCapital: capital
     }
 
 

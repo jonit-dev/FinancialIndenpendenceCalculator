@@ -2,7 +2,7 @@ import { Roles } from '../types/index.types';
 
 interface INextRole {
   year: number,
-  nextRole: Roles
+  role: Roles
 }
 
 
@@ -13,7 +13,7 @@ export class Person {
   public role: Roles
   public nextRoles: INextRole[]
 
-  constructor(age, name, role: Roles, nextRoles: INextRole[]) {
+  constructor(age: number, name: string, role: Roles, nextRoles: INextRole[]) {
     this.age = age;
     this.name = name;
     this.role = role;
