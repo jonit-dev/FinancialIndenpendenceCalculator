@@ -1,3 +1,4 @@
+import { Person } from '../classes/Person';
 
 
 export enum Provinces {
@@ -21,15 +22,38 @@ export interface ISalary {
   }
 }
 
-export enum JPRoles {
-  RemoteDevCanada = "RemoteDevCanada",
-  RemoteDevUS = "RemoteDevUS"
+interface IExpense {
+  name: string, value: number
 }
 
-export enum SarahRoles {
+export interface IExpenses {
+  [province: string]: IExpense[]
+}
+
+export enum Roles {
+  RemoteDevCanada = "RemoteDevCanada",
+  RemoteDevUS = "RemoteDevUS",
   jobEntryLevelAny = "jobEntryLevelAny",
   DesignerEntryLevel = "DesignerEntryLevel",
   DesignerJr = "DesignerJr",
   DesignerIntermediate = "DesignerIntermediate",
   DesignerRemoteUS = "DesignerRemoteUS"
+}
+
+export interface IResult {
+  family: Person[]
+  year: number,
+  totalRevenue: number,
+  totalExtra: number,
+  totalExpenses: number,
+  totalInvestment: number,
+  capital: number,
+  passiveIncomeMo: number
+}
+
+export interface IProvinceResult {
+  province: Provinces,
+  timeTo1M: number,
+  timeToFinancialIndependence: number,
+  results: IResult[]
 }

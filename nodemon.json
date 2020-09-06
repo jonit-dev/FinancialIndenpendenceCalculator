@@ -5,7 +5,7 @@
     "node_modules"
   ],
   "watch": [
-    "src/index.ts"
+    "src/**/*.ts"
   ],
   "ext": "ts",
   "execMap": {
