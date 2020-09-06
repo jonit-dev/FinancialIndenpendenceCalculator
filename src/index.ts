@@ -30,7 +30,7 @@ const family = [joao, sarah]
 
 const startingCapital = 239000
 
-const maxYears = 52 //for how long should we calculate? 52 years + 30 yr old = 82 years, life expectancy in canada
+const maxYears = 15 //for how long do you expect to work?
 
 const childBenefitValue = 500
 const interestRate = 8 //8% is the average annual rate for US stocks. Check VOO ETF
