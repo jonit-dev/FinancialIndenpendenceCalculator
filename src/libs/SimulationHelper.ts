@@ -1,4 +1,4 @@
-import { Person } from '../classes/Person';
+import { IPersonAsset, Person } from '../classes/Person';
 import { householdExpenses, RolesSalary } from '../constants/provinces.const';
 import { IProvinceChildCareCost, IProvinceResult, IResult, Provinces } from '../types/index.types';
 import { GenericHelper } from './GenericHelper';
@@ -18,6 +18,9 @@ export class SimulationHelper {
       console.log(`> Time to 1M CAD: ${result.timeTo1M} yrs`);
       console.log(`> Time to financial independence: ${result.timeToFinancialIndependence} yrs`);
       console.log(`> Final Capital: ${GenericHelper.formatCurrency('CAD', result.finalCapital)}`);
+      if (result.assets.length) {
+        console.log(`> Assets: ${JSON.stringify(result.assets)}`);
+      }
       console.log(`\n`);
     }
 
@@ -25,23 +28,42 @@ export class SimulationHelper {
   }
 
 
-  public static calculateResults(family: Person[], startingCapital: number, maxYears: number, province: Provinces, provinceChildCareCosts: IProvinceChildCareCost, interestRate: number, inflationRate: number, childBenefitValue: number, printResults: "FULL" | "SUMMARY" | "NO"): IProvinceResult {
+  public static calculateResults(family: Person[], startingCapital: number, maxYears: number, province: Provinces, provinceChildCareCosts: IProvinceChildCareCost, interestRate: number, inflationRate: number, childBenefitValue: number, printResults: "FULL" | "SUMMARY" | "NO", buyHome?: boolean, buyHomePrice?: number): IProvinceResult {
 
 
     let results: IResult[] = []
 
-    const baseExpenses = householdExpenses[province].reduce((total, el) => total + el.value, 0)
+    const assetHolder = family[0];
+    let baseExpenses = householdExpenses[province].reduce((total, el) => total + el.value, 0);
+    let hasHome = false
+    const rentalValue = householdExpenses[province].find((item) => item.name === "Rental")!.value;
 
-    const realInterestRateYr = interestRate - inflationRate
-    const realInterestRateMo = realInterestRateYr / 12
+    const realInterestRateYr = interestRate - inflationRate;
+    const realInterestRateMo = realInterestRateYr / 12;
+    const homeAppreciationRate = 3 //avg 3% per year
 
     let timeTo1M;
     let timeToFinancialIndependence;
     let capital = startingCapital
 
-    console.log(`Starting Capital: ${startingCapital}`);
+    if (printResults !== "NO") console.log(`>📍 Province: ${province} | Starting Capital: ${GenericHelper.formatCurrency('CAD', startingCapital)}`);
 
     for (let year = 1; year <= maxYears; year++) {
+
+
+      //Buy home, if simulation requires it
+      if (buyHome && buyHomePrice && capital >= buyHomePrice && hasHome === false) {
+        capital -= buyHomePrice
+        baseExpenses -= rentalValue!
+        console.log(`> 🏡 Goal: Bought a home for ${GenericHelper.formatCurrency('CAD', buyHomePrice)}!`);
+        hasHome = true
+        assetHolder.assets.push({
+          name: "Home",
+          value: buyHomePrice
+        })
+      }
+
+
 
 
       let extraIncome;
@@ -88,6 +110,16 @@ export class SimulationHelper {
       })
 
 
+      //appreciate our home value, if we have it
+      assetHolder.assets.forEach((asset) => {
+
+        if (asset.name === "Home") {
+          asset.value = -InterestHelper.FV((homeAppreciationRate / 100) / 12, 12, 0, asset.value)
+        }
+
+      })
+
+
 
       results.push({
         family,
@@ -128,7 +160,7 @@ export class SimulationHelper {
 
         case "FULL":
           console.log(agesString);
-          console.log(`>📍 Province: ${province}`);
+
           console.log(`> Real Interest Rate/Mo: ${realInterestRateMo.toFixed(2)}%`);
           console.log(salariesString);
           console.log(`> Total Revenue: ${GenericHelper.formatCurrency('CAD', totalRevenue)}`);
@@ -153,12 +185,15 @@ export class SimulationHelper {
       }
     }
 
+    const assetsResults: IPersonAsset[] = assetHolder.assets
+
     return {
       province,
       results,
       timeTo1M,
       timeToFinancialIndependence,
-      finalCapital: capital
+      finalCapital: capital,
+      assets: assetsResults
     }
 
 

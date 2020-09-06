@@ -9,14 +9,6 @@ import { IProvinceResult, Provinces, Roles } from './types/index.types';
 |  >>> YOUR INPUT
 *##############################################################*/
 
-/*
-TODO: 
-
-- Multiple provinces comparison
-- Married, non married support
-- Kids, without kids support, multiple kids
-*/
-
 
 // Your users ========================================
 
@@ -36,9 +28,9 @@ const sarah = new Person(33, "Sarah", Roles.jobEntryLevelAny, [
 
 const family = [joao, sarah]
 
-const startingCapital = 0
+const startingCapital = 239000
 
-const maxYears = 20 //for how long should we calculate?
+const maxYears = 10 //for how long should we calculate? 52 years + 30 yr old = 82 years, life expectancy in canada
 
 const childBenefitValue = 500
 const interestRate = 8 //8% is the average annual rate for US stocks. Check VOO ETF
@@ -50,6 +42,9 @@ const avgCanada10YearInflation = 1.59
 // PROGRAM ========================================
 
 const MBResults = SimulationHelper.calculateResults(_.cloneDeep(family), startingCapital, maxYears, Provinces.MB, provinceChildCareCosts, interestRate, avgCanada10YearInflation, childBenefitValue, "NO")
+
+//With home buying
+// const QCResults = SimulationHelper.calculateResults(_.cloneDeep(family), startingCapital, maxYears, Provinces.QC, provinceChildCareCosts, interestRate, avgCanada10YearInflation, childBenefitValue, "NO", true, 300000)
 
 const QCResults = SimulationHelper.calculateResults(_.cloneDeep(family), startingCapital, maxYears, Provinces.QC, provinceChildCareCosts, interestRate, avgCanada10YearInflation, childBenefitValue, "NO")
 

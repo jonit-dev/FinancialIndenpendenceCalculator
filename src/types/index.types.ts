@@ -1,4 +1,4 @@
-import { Person } from '../classes/Person';
+import { IPersonAsset, Person } from '../classes/Person';
 
 
 export enum Provinces {
@@ -58,5 +58,6 @@ export interface IProvinceResult {
   timeTo1M: number | undefined,
   timeToFinancialIndependence: number | undefined,
   results: IResult[],
-  finalCapital: number
+  finalCapital: number,
+  assets: IPersonAsset[]
 }
